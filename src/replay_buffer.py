@@ -73,13 +73,14 @@ class ReplayBuffer2(object):
         self.buffer.add_transition((s1, a, r, s2, t))
 
     def get_transitions(self, batch_size):
+        hack_sample = 1
         sample = self.buffer.get_transitions(batch_size)
         S1 = [x[0] for x in sample]
         A = [x[1] for x in sample]
         R = [x[2] for x in sample]
         S2 = [x[3] for x in sample]
         T = [x[4] for x in sample]
-        return S1, A, R, S2, T
+        return S1 * hack_sample, A* hack_sample, R* hack_sample, S2* hack_sample, T* hack_sample
 
     def size(self):
         return self.buffer.size()

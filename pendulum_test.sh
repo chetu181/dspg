@@ -1,0 +1,1 @@
+python main.py --env_name="Pendulum-v0" --num_samples=8 --hidden_dims_Q="[40,40]" --hidden_dims_pi="[40,40]"
