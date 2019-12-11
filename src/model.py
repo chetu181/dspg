@@ -19,16 +19,7 @@ class SoftPolicyGradient(object):
         self.policy = get_policy(conf.pi_type, conf.hidden_dims_pi, conf.reg, conf.reg_factor)
         self.value = MLPValueFunc(conf.hidden_dims_Q, conf.hidden_dims_Q)
 
-        self._init_placeholders()
-        self._init_actor_update()
-        self._init_critic_update()
-        self._init_target_ops()
-
-        sess.run(tf.global_variables_initializer())
-        sess.run(self.hard_update_ops)
-
-
-    def _init_placeholders(self):
+        # self._init_placeholders() #-------------------------------
         self.state = state = tf.placeholder(tf.float32, [None] + list(self.state_shape))
         self.action = action = tf.placeholder(tf.float32, (None, self.action_shape))
         self.reward = tf.placeholder(tf.float32, [None])
@@ -40,8 +31,7 @@ class SoftPolicyGradient(object):
         _, _ = self.sample_pi_network(state, 'target_pi')
         self.target_Q = self.value.Q_network(state, tf.tanh(action), 'target_Q')
 
-
-    def _init_actor_update(self):
+        # self._init_actor_update()  #-------------------------------
         # constructing pi loss
         Q_sampled, log_pi_sampled = self.get_sampled_Q_and_pi(self.state, 'Q', 'pi')
 
@@ -63,7 +53,7 @@ class SoftPolicyGradient(object):
             learning_rate=self.actor_lr).apply_gradients(zip(pi_grad, pi_variables))
 
 
-    def _init_critic_update(self):
+        # self._init_critic_update() #-------------------------------
         # constructing Q loss
         target_Q_s2_sampled, log_pi_s2_sampled = self.get_sampled_Q_and_pi(self.next_state, 'target_Q', 'target_pi')
         target_Q_s2_sampled = tf.reduce_mean(tf.reshape(target_Q_s2_sampled, (self.num_samples, -1)), axis=0)
@@ -75,17 +65,7 @@ class SoftPolicyGradient(object):
         self.train_Q = tf.train.AdamOptimizer(
             learning_rate=self.Q_critic_lr).minimize(Q_loss, var_list=Q_variables)
 
-
-    def get_sampled_Q_and_pi(self, state, name_Q, name_pi):
-        state = tf.tile(state, [self.num_samples, 1])
-        sampled_action, _ = self.sample_pi_network(state, name_pi, reuse=True)
-        sampled_action = tf.stop_gradient(sampled_action)
-        Q_sampled = self.value.Q_network(state, tf.tanh(sampled_action), name_Q, reuse=True)
-        log_pi_sampled = self.pi_network_log_prob(sampled_action, state, name_pi, reuse=True)
-        return Q_sampled, log_pi_sampled
-
-
-    def _init_target_ops(self):
+        # self._init_target_ops() #-------------------------------
         target_Q_variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='target_Q/')
         target_pi_variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='target_pi/')
         # soft update
@@ -101,6 +81,17 @@ class SoftPolicyGradient(object):
         hard_update_Q_ops.extend(hard_update_pi_ops)
         self.hard_update_ops = tf.group(*hard_update_Q_ops)
 
+        sess.run(tf.global_variables_initializer())
+        sess.run(self.hard_update_ops)
+
+
+    def get_sampled_Q_and_pi(self, state, name_Q, name_pi):
+        state = tf.tile(state, [self.num_samples, 1])
+        sampled_action, _ = self.sample_pi_network(state, name_pi, reuse=True)
+        sampled_action = tf.stop_gradient(sampled_action)
+        Q_sampled = self.value.Q_network(state, tf.tanh(sampled_action), name_Q, reuse=True)
+        log_pi_sampled = self.pi_network_log_prob(sampled_action, state, name_pi, reuse=True)
+        return Q_sampled, log_pi_sampled
 
     def pi_network_log_prob(self, action, state, name, reuse=None):
         with tf.variable_scope(name, reuse=reuse):

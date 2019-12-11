@@ -67,7 +67,8 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 # set random seed
-# tf.set_random_seed(conf.random_seed)
+tf.set_random_seed(conf.random_seed)
+np.random.seed(10)
 all_epi_rewards = []
 time_begin = time.time()
 
@@ -76,7 +77,7 @@ def main(_):
     preprocess_conf(conf, model_dir)
 
     env = gym.make(conf.env_name)
-    # env.seed(conf.random_seed)
+    env.seed(conf.random_seed)
     state_shape = env.observation_space.shape
     if type(env.action_space) is gym.spaces.Discrete:
         action_shape = env.action_space.n
