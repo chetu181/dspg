@@ -24,7 +24,7 @@ flags = tf.app.flags
 flags.DEFINE_string('env_name', 'Pendulum-v0', 'name of environment：\
                     Pendulum-v0、Acrobot-v1、MountainCarContinuous-v0')
 flags.DEFINE_float('reward_scale', 1.0, 'The scale of reward')
-flags.DEFINE_integer('random_seed', 123, 'random seed')
+flags.DEFINE_integer('random_seed', 398, 'random seed')
 
 # Algorithm
 flags.DEFINE_boolean('load_model', False, 'whether to load a previous model')
@@ -68,7 +68,7 @@ logger.addHandler(ch)
 
 # set random seed
 tf.set_random_seed(conf.random_seed)
-np.random.seed(10)
+np.random.seed(100)
 all_epi_rewards = []
 time_begin = time.time()
 
