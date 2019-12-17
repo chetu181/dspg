@@ -18,6 +18,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 import time
 import sys
+import datetime
 
 flags = tf.app.flags
 # environment
@@ -56,6 +57,8 @@ flags.DEFINE_integer('num_train_steps', 4, 'The number of train steps in each ti
 flags.DEFINE_boolean('display', False, 'display the game screen or not')
 flags.DEFINE_string('log_level', 'INFO', 'log level [DEBUG, INFO, WARNING, ERROR, CRITICAL]')
 
+flags.DEFINE_string('exp_name', "pend", 'Experiment_name')
+
 conf = flags.FLAGS
 
 logger = logging.getLogger()
@@ -74,6 +77,8 @@ time_begin = time.time()
 
 def main(_):
     model_dir, data_dir = get_dirs(conf, ['env_name'])
+    exp_start_time = datetime.datetime.now().strftime("%A_%b%d-%H%M%S")
+    data_dir = "logs/" + conf.exp_name + "_" + exp_start_time
     preprocess_conf(conf, model_dir)
 
     env = gym.make(conf.env_name)
@@ -137,7 +142,7 @@ def main(_):
                 # pbar.update(local_step)
 
                 lenn = len(all_epi_rewards)
-                fromm = max(lenn-5, 0)
+                fromm = max(lenn-20, 0)
                 to = lenn
                 min_5_ep_ret = min(all_epi_rewards[fromm:to])
                 

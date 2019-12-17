@@ -34,19 +34,18 @@ class SoftPolicyGradient(object):
         # self._init_actor_update()  #-------------------------------
         
         # constructing pi loss
-        apply_grads = True
+        apply_grads = False
         Q_sampled, log_pi_sampled = self.get_sampled_Q_and_pi(self.state, 'Q', 'pi', apply_grads)
         
 
         self.pi_variables = pi_variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='pi/')
 
         if apply_grads:
-            pass
             advantage = tf.subtract(Q_sampled, log_pi_sampled, name="advantage")
             advantage = tf.stop_gradient(advantage)
             # Whiten the advantage.
-            # adv_mean = tf.reduce_mean(advantage)
-            # advantage = advantage - adv_mean 
+            adv_mean = tf.reduce_mean(advantage)
+            advantage = advantage - adv_mean 
 
             
             pi_grad = tf.gradients(log_pi_sampled, pi_variables, -advantage)
