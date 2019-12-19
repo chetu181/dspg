@@ -94,8 +94,10 @@ def main(_):
     buffer = ReplayBuffer2(conf.buffer_size)
 
     # building agent
-    config = tf.ConfigProto(allow_soft_placement=True)
-    config.gpu_options.allow_growth = True
+    # config = tf.ConfigProto(allow_soft_placement=True)
+    # config.gpu_options.allow_growth = True
+
+    config = tf.ConfigProto(intra_op_parallelism_threads=8, inter_op_parallelism_threads=8)
     with tf.Session(config=config) as sess:
         # agent
         agent = SoftPolicyGradient(sess, conf, state_shape, action_shape)
