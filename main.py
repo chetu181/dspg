@@ -25,7 +25,7 @@ flags = tf.app.flags
 flags.DEFINE_string('env_name', 'Pendulum-v0', 'name of environment：\
                     Pendulum-v0、Acrobot-v1、MountainCarContinuous-v0')
 flags.DEFINE_float('reward_scale', 1.0, 'The scale of reward')
-flags.DEFINE_integer('random_seed', 398, 'random seed')
+flags.DEFINE_integer('random_seed', 876, 'random seed')
 
 # Algorithm
 flags.DEFINE_boolean('load_model', False, 'whether to load a previous model')
@@ -58,6 +58,7 @@ flags.DEFINE_boolean('display', False, 'display the game screen or not')
 flags.DEFINE_string('log_level', 'INFO', 'log level [DEBUG, INFO, WARNING, ERROR, CRITICAL]')
 
 flags.DEFINE_string('exp_name', "pend", 'Experiment_name')
+flags.DEFINE_boolean('apply_grad', True, 'whether to apply gradients(clipped) or make q directly diffentiable')
 
 conf = flags.FLAGS
 
@@ -76,9 +77,9 @@ all_epi_rewards = []
 time_begin = time.time()
 
 def main(_):
-    model_dir, data_dir = get_dirs(conf, ['env_name'])
-    exp_start_time = datetime.datetime.now().strftime("%A_%b%d-%H%M%S")
-    data_dir = "logs/" + conf.exp_name + "_" + exp_start_time
+    model_dir, data_dir = get_dirs(conf, ['exp_name'])
+    # exp_start_time = datetime.datetime.now().strftime("%A_%b%d-%H%M%S")
+    # data_dir = "logs/" + conf.exp_name + "_" + exp_start_time
     preprocess_conf(conf, model_dir)
 
     env = gym.make(conf.env_name)
@@ -103,6 +104,15 @@ def main(_):
         if conf.load_model:
             stat.load_model()
 
+            
+        def var_print():
+            for var in tf.global_variables():
+                print(var)   
+    
+        print("printing vars:------------------------------------------------")
+        var_print()
+        print("printing vars::------------------------------------------------")
+        
         start_steps = 1000
         episode, global_step, local_step = 0, 0, 0
         epi_rewards = 0
@@ -151,9 +161,11 @@ def main(_):
                 print('Episode: %s, epi_rewards: %.3f, pi_loss: %.3f, Q_loss: %.3f \tmin_5_epi_rew %.1f' %
                         (episode+1, epi_rewards, np.mean(pi_loss), np.mean(Q_loss), min_5_ep_ret ) )
                 threshold = -500.0
-                if(min_5_ep_ret > threshold):
+                if((to-fromm)>3 and min_5_ep_ret > threshold):
                     time_end = time.time()
-                    print("slow-shi hyperParams have made algo converge (", threshold , ") in ", (time_end - time_begin)/1.0 ," s")
+                    print("SHI hyperParams have made algo converge (", threshold , ") in ", (time_end - time_begin)/1.0 ," s")
+                    stat.save_step(global_step, epi_rewards, np.mean(total_Q), np.mean(Q_loss), np.mean(pi_loss))
+                    stat.save_model(global_step)
                     sys.exit()
                 episode += 1
                 local_step = 0
