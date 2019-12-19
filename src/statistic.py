@@ -59,14 +59,21 @@ class Statistic(object):
                 self.saver.save(self.sess, self.model_dir + '/model', global_step=global_step)
 
 
+    def save_model(self, global_step):
+        self.saver.save(self.sess, self.model_dir + '/final', global_step=global_step)
+
+
     def load_model(self):
         logger.info("Loading checkpoints...")
-        pre_model_dir = os.path.dirname(self.model_dir) + '/model'
-
+        pre_model_dir = os.path.dirname(self.model_dir) + '/final'
+        pre_model_dir = "/home/chaithanya/work/ml/shi2_dspg/logs/shi_working_model"
         ckpt = tf.train.get_checkpoint_state(pre_model_dir)
+        print("ckpt and ckpt.model_checkpoint_path, " ,ckpt ,"asdf", ckpt.model_checkpoint_path)
+        print("pre_model_dir", pre_model_dir)
         if ckpt and ckpt.model_checkpoint_path:
             ckpt_name = os.path.basename(ckpt.model_checkpoint_path)
             fname = os.path.join(pre_model_dir, ckpt_name)
+            print("fname", fname)
             self.saver.restore(self.sess, fname)
             logger.info("Load SUCCESS: %s" % fname)
         else:
